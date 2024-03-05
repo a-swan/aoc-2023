@@ -2,60 +2,37 @@ import sys
 import re
 
 parts = []
-symbols = []
 
-def checkRow(row, start, end):
-    for hit in symbols[row]:
-        if hit >= start-1 and hit <= end+1:
-            return True
+def part1(schematic):
+    with open(schematic, 'r+') as file:
+        symbols = set()
+        for lineNumber, line in enumerate(file):
 
-def detectSymbols(row, startIndex, endIndex):
-    # Check for symbols at startIndex-1 to endIndex+1
-    if row-1 > 0:
-        if checkRow(row-1, startIndex, endIndex):
-            return True
+            for lineIndex, char in enumerate(line.strip()):
+                if char != '.' and not char.isnumeric():
+                    #print(char)
+                    symbols |= {(r, c) for r in range(lineNumber-1, lineNumber+2) for c in range(lineIndex-1, lineIndex+2)}
 
-    if checkRow(row, startIndex, endIndex):
-        return True
+        file.seek(0) 
 
-    if row+1 < len(symbols):
-        if checkRow(row+1, startIndex, endIndex):
-            return True
+        part_reg = r'\d+'
+        sum = 0
+        for lineNumber, line in enumerate(file):
+            for match in re.finditer(part_reg, line.strip()):
+                #print(lineNumber, match)
+                if any((lineNumber,j) in symbols for j in range(*match.span())):
+                    #print(lineNumber)
+                    #print(match.group())
+                    sum += int(match.group())
 
-def main(schematic):
-    for lineNumber,line in enumerate(schematic):
-        symbols.append([])
-        subIndex = -1
-
-        for index,char in enumerate(line.strip()):
-            if char.isnumeric() and index > subIndex:
-                partIndex = index
-
-                # lookahead for full number
-                subIndex = index
-                while subIndex < len(line):
-                    if not line[subIndex].isnumeric():
-                        break
-                    subIndex += 1
-                #print(line[partInd:subIndex])
-                #print(f"Index {partInd}, {subIndex}")
-                parts.append((line[partIndex:subIndex], lineNumber, partIndex, subIndex))
-            elif char != '.' and not char.isnumeric():
-                #print(char)
-                symbols[lineNumber].append(index)
-            index = subIndex
-
-    sum = 0
-    for part in parts:
-        valid = detectSymbols(part[1], part[2], part[3])
-        print(f"Part {part[0]} is {valid}")
-
-        if valid:
-            sum += int(part[0])
-    print(f"Sum: {sum}")
+    print(sum)
+def part2(schematic):
+    with open(schematic, 'r') as file:
+        for lineNumber, line in enumerate(file):
+            for lineIndex, char in enumerate(line.strip()):
+                print(char)
 
 if __name__ == "__main__":
-    print("Schematics>>>")
-    schematic = sys.stdin.readlines()
-
-    main(schematic)
+    schematic = sys.argv[1]
+    #part1(schematic)
+    part2(schematic)

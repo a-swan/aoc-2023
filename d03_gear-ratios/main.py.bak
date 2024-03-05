@@ -1,0 +1,57 @@
+import sys
+
+parts = []
+symbols = []
+
+def checkRow(row, start, end):
+    for hit in symbols[row]:
+        if hit >= start-1 and hit <= end+1:
+            return True
+
+def detectSymbols(row, startIndex, endIndex):
+    # Check for symbols at startIndex-1 to endIndex+1
+    if row-1 > 0:
+        if checkRow(row-1, startIndex, endIndex):
+            return True
+
+    if checkRow(row, startIndex, endIndex):
+        return True
+
+    if row+1 < len(symbols):
+        if checkRow(row+1, startIndex, endIndex):
+            return True
+
+def main(schematic):
+    with open(schematic, 'r') as file:
+        for lineNumber,line in enumerate(file):
+            symbols.append([])
+            subIndex = -1
+
+            for index,char in enumerate(line.strip()):
+                # detect number
+                if char.isnumeric() and index > subIndex:
+                    partIndex = index
+
+                    # lookahead for full number
+                    subIndex = index
+                    while subIndex < len(line)-1 and line[subIndex].isdigit():
+                        subIndex += 1
+                    parts.append((line[partIndex:subIndex], lineNumber, partIndex, subIndex))
+
+                elif char != '.' and not char.isnumeric():
+                    symbols[lineNumber].append(index)
+
+                # skip ahead to the end of the number
+                index = subIndex
+
+    sum = 0
+    for part in parts:
+        valid = detectSymbols(part[1], part[2], part[3])
+
+        if valid:
+            sum += int(part[0])
+            print(f"[{part[1]}]Part {part[0]} is {valid}")
+    print(f"Sum: {sum}")
+if __name__ == "__main__":
+    schematic = sys.argv[1]
+    main(schematic)
